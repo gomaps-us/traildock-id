@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>iD</title>
+        <link rel='stylesheet' href='iD.css'>
+
+        <!-- mobile devices -->
+        <meta name='viewport' content='initial-scale=1.0 maximum-scale=1.0'>
+        <meta name='apple-mobile-web-app-capable' content='yes' />
+        <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
+
+        <!--[if !IE]>-->
+        <script src='iD.js'></script>
+        <!--<![endif]-->
+    </head>
+    <body>
+        <div id='id-container'></div>
+        <script>
+            // google analytics
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-38039653-2']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+              var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+
+            // crazyegg
+            setTimeout(function(){var a=document.createElement('script');
+            var b=document.getElementsByTagName('script')[0];
+            a.src=document.location.protocol+'//dnn506yrbagrg.cloudfront.net/pages/scripts/0013/6714.js?'+Math.floor(new Date().getTime()/3600000);
+            a.async=true;a.type='text/javascript';b.parentNode.insertBefore(a,b)}, 1);
+
+            if (typeof iD == 'undefined' || !iD.Detect().support) {
+                document.getElementById('id-container').innerHTML = 'Sorry, your browser is not currently supported. Please use Potlatch 2 to edit the map.';
+                document.getElementById('id-container').className = 'unsupported';
+
+            } else {
+                var id = iD.Context();
+
+                // disable boundaries (unless we have an explicit disable_features list)
+                var q = iD.utilStringQs(window.location.hash.substring(1));
+                if (!q.hasOwnProperty('disable_features')) {
+                    id.features().disable('boundaries');
+                }
+
+                id.ui()(document.getElementById('id-container'), function() {
+                    id.container().select('#about-list')
+                        .insert('li', '.user-list')
+                        .attr('class', 'source-switch')
+                        .call(iD.uiSourceSwitch(id)
+                            .keys([{
+                                    'urlroot': 'https://www.openstreetmap.org',
+                                    'oauth_consumer_key': '5A043yRSEugj4DJ5TljuapfnrflWDte8jTOcWLlT',
+                                    'oauth_secret': 'aB3jKq1TRsCOUrfOIZ6oQMEDmv2ptV76PA54NGLL'
+                                }, {
+                                    'urlroot': 'https://api06.dev.openstreetmap.org',
+                                    'oauth_consumer_key': 'zwQZFivccHkLs3a8Rq5CoS412fE5aPCXDw9DZj7R',
+                                    'oauth_secret': 'aMnOOCwExO2XYtRVWJ1bI9QOdqh1cay2UgpbhA6p'
+                                }
+                            ])
+                        );
+                });
+            }
+
+            ////////// Traildock Start
+
+            // Create an iFrame pointed to the Traildock widget
+            var idContainer = document.getElementById('id-container');
+            // idContainer.style.height = '80%';
+            idContainer.setAttribute('class', 'id-container split');
+
+            var iframe = document.createElement('iframe');
+            iframe.setAttribute('id', 'traildock');
+            iframe.setAttribute('class', 'split');
+            iframe.setAttribute('style', 'width: 100%;');
+
+            // Local development
+            //iframe.setAttribute('src', 'http://localhost:1234/#/');
+
+            // Staging
+            // iframe.setAttribute('src', 'https://s3-us-west-2.amazonaws.com/traildock-id/staging/widget/index.html');
+
+            // Production
+            iframe.setAttribute('src', 'https://s3-us-west-2.amazonaws.com/traildock-id/production/widget/index.html');
+
+            iframe.setAttribute('frameBorder', '0');
+
+            document.body.insertBefore(iframe, idContainer.nextSibling);
+
+            var traildockWindow = iframe.contentWindow || iframe;
+
+            // Notify the widget which osm elements have been selected
+            // by posting messages to the iframe
+
+            // Note There is also a 'change' event on id
+            id.on('enter', function(a){
+                if (a.selectedIDs) {
+                    traildockWindow.postMessage('enter:' + a.selectedIDs().join(','), '*');
+                } else {
+                    traildockWindow.postMessage('enter:', '*');
+                }
+            });
+
+            id.on('exit', function(a){
+                if (a.selectedIDs) {
+                    traildockWindow.postMessage('exit:' + a.selectedIDs().join(','), '*');
+                } else {
+                    traildockWindow.postMessage('exit:', '*');
+                }
+            });
+
+            // Allow drag to resize panes
+
+            var css = '.gutter {background-color: #eee; background-repeat: no-repeat; background-position: 50%;} .gutter.gutter-vertical {background-image:  url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII="); cursor: ns-resize;} .gutter.gutter-horizontal {background-image:  url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg=="); cursor: ew-resize;} .split {-webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;}',
+                head = document.head || document.getElementsByTagName('head')[0],
+                style = document.createElement('style');
+
+            style.type = 'text/css';
+            if (style.styleSheet){
+                style.styleSheet.cssText = css;
+            } else {
+                style.appendChild(document.createTextNode(css));
+            }
+            head.appendChild(style);
+
+            (function(d, script) {
+                script = d.createElement('script');
+                script.type = 'text/javascript';
+                script.async = true;
+                script.onload = function(){
+                    console.log('~~ Split.js has loaded')
+
+                    Split(['#id-container', '#traildock'], {
+                        sizes: [70, 30],
+                        minSize: 200,
+                        direction: 'vertical'
+                    });
+
+                };
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/split.js/1.3.5/split.min.js';
+                d.getElementsByTagName('head')[0].appendChild(script);
+            }(document));
+
+            // Support map center events
+
+            window.addEventListener('message', function(e) {
+                if (typeof e.data === 'string' && e.data.includes('center:')) {
+                    var locationStr = e.data.replace('center:' ,'')
+                    var location = JSON.parse(locationStr)
+                    id.map().center([location.lng, location.lat])       
+                }
+            })
+
+            ////////// Traildock End
+
+        </script>
+    </body>
+</html>
